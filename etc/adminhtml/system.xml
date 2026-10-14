@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+    Copyright © 2026 Roman Pasichnyk
+    SPDX-License-Identifier: OSL-3.0 OR AFL-3.0
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="zero_giftcard" translate="label" type="text" sortOrder="96" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Gift Cards</label>
+            <tab>zero</tab>
+            <resource>Zero_GiftCard::config</resource>
+            <group id="general" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Gift Cards</label>
+                <comment>A gift card is a virtual product with Gift Card Amounts set (Catalog > Products; "bin/magento zero:giftcard:create-product" makes one). Its cards are made and emailed once the order is paid; they pay at checkout like money (shipping and tax too). All cards: Marketing > Gift Cards.</comment>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" canRestore="1">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="expire_days" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" canRestore="1">
+                    <label>Cards Expire After, Days</label>
+                    <comment>0: never (in many countries gift cards must last years: check the law).</comment>
+                    <validate>validate-digits</validate>
+                </field>
+                <field id="identity" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Email Sender</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                </field>
+                <field id="template" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Email Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

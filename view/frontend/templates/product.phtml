@@ -1,0 +1,55 @@
+<?php
+/**
+ * Copyright © 2026 Roman Pasichnyk
+ * SPDX-License-Identifier: OSL-3.0 OR AFL-3.0
+ *
+ * A gift card product's choices, posted with Add to Cart as giftcard[...]:
+ * the amount, who it is for (their email gets the card; empty: yours does),
+ * from whom, a message. Plain form fields, no script.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Zero\GiftCard\ViewModel\Product $viewModel
+ */
+$amounts = $block->getData('viewModel')->amounts();
+if (!$amounts) {
+    return;
+}
+?>
+<fieldset class="zero-giftcard-form flex flex-col gap-4 mb-6" data-giftcard-form>
+    <legend class="sr-only"><?= $escaper->escapeHtml(__('Gift card')) ?></legend>
+    <div role="radiogroup" aria-labelledby="giftcard-amount-label">
+        <p id="giftcard-amount-label" class="text-sm font-medium mb-2"><?= $escaper->escapeHtml(__('Amount')) ?></p>
+        <div class="flex flex-wrap gap-2">
+            <?php foreach ($amounts as $i => $amount): ?>
+                <label class="zero-giftcard-amount">
+                    <input type="radio" name="giftcard[amount]" class="peer sr-only" required
+                           value="<?= $escaper->escapeHtmlAttr((string) $amount['value']) ?>"<?= $i === 0 ? ' checked' : '' ?>>
+                    <span class="btn btn-outline peer-checked:btn-neutral peer-focus-visible:outline peer-focus-visible:outline-2"><?= $escaper->escapeHtml($amount['label']) ?></span>
+                </label>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <div class="grid gap-3 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-sm">
+            <span><?= $escaper->escapeHtml(__('To (name)')) ?></span>
+            <input type="text" name="giftcard[recipient_name]" maxlength="100" autocomplete="off" class="input input-bordered w-full">
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+            <span><?= $escaper->escapeHtml(__('Their email')) ?></span>
+            <input type="email" name="giftcard[recipient_email]" maxlength="255" autocomplete="off" class="input input-bordered w-full"
+                   aria-describedby="giftcard-email-note">
+        </label>
+        <label class="flex flex-col gap-1 text-sm sm:col-span-2">
+            <span><?= $escaper->escapeHtml(__('From (name)')) ?></span>
+            <input type="text" name="giftcard[sender_name]" maxlength="100" class="input input-bordered w-full">
+        </label>
+        <label class="flex flex-col gap-1 text-sm sm:col-span-2">
+            <span><?= $escaper->escapeHtml(__('Message')) ?></span>
+            <textarea name="giftcard[message]" maxlength="500" rows="3" class="textarea textarea-bordered w-full"></textarea>
+        </label>
+    </div>
+    <p id="giftcard-email-note" class="text-xs text-base-content/60">
+        <?= $escaper->escapeHtml(__('The card is emailed once the order is paid: to their email, or to yours if you leave it empty.')) ?>
+    </p>
+</fieldset>

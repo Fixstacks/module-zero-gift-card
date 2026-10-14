@@ -1,0 +1,78 @@
+{
+    "zero_giftcard": {
+        "column": {
+            "card_id": true,
+            "code": true,
+            "website_id": true,
+            "initial_amount": true,
+            "balance": true,
+            "is_active": true,
+            "expires_at": true,
+            "order_increment_id": true,
+            "order_item_id": true,
+            "sender_name": true,
+            "recipient_name": true,
+            "recipient_email": true,
+            "message": true,
+            "store_id": true,
+            "sent_at": true,
+            "created_at": true
+        },
+        "index": {
+            "ZERO_GIFTCARD_ORDER_ITEM_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ZERO_GIFTCARD_CODE": true
+        }
+    },
+    "zero_giftcard_history": {
+        "column": {
+            "history_id": true,
+            "card_id": true,
+            "amount": true,
+            "balance": true,
+            "action": true,
+            "order_increment_id": true,
+            "comment": true,
+            "created_at": true
+        },
+        "index": {
+            "ZERO_GIFTCARD_HISTORY_CARD_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ZERO_GIFTCARD_HISTORY_CARD_ID_ZERO_GIFTCARD_CARD_ID": true
+        }
+    },
+    "quote": {
+        "column": {
+            "zero_giftcard_codes": true,
+            "zero_giftcard_used": true,
+            "zero_giftcard_amount": true,
+            "base_zero_giftcard_amount": true
+        }
+    },
+    "sales_order": {
+        "column": {
+            "zero_giftcard_used": true,
+            "zero_giftcard_amount": true,
+            "base_zero_giftcard_amount": true,
+            "base_zero_giftcard_invoiced": true,
+            "base_zero_giftcard_refunded": true,
+            "base_zero_giftcard_returned": true
+        }
+    },
+    "sales_invoice": {
+        "column": {
+            "zero_giftcard_amount": true,
+            "base_zero_giftcard_amount": true
+        }
+    },
+    "sales_creditmemo": {
+        "column": {
+            "zero_giftcard_amount": true,
+            "base_zero_giftcard_amount": true
+        }
+    }
+}

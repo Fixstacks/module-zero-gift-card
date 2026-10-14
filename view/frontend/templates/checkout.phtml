@@ -1,0 +1,56 @@
+<?php
+/**
+ * Copyright © 2026 Roman Pasichnyk
+ * SPDX-License-Identifier: OSL-3.0 OR AFL-3.0
+ *
+ * Gift cards in the checkout's order summary (#checkout-giftcard): the cards
+ * on the order with what each pays, and a field for another. Inside the
+ * checkout form: buttons are type="button" and hx-post to
+ * giftcard/checkout/apply, which answers with this box and the totals.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Zero\GiftCard\ViewModel\Checkout $viewModel
+ */
+$viewModel = $block->getData('viewModel');
+if (!$viewModel->isEnabled()) {
+    return;
+}
+$url = $block->getUrl('giftcard/checkout/apply');
+$cards = $viewModel->applied();
+$error = $block->getData('error');
+?>
+<div id="checkout-giftcard" class="checkout-giftcard mb-4 text-sm flex flex-col gap-2">
+    <?php foreach ($cards as $card): ?>
+        <div class="flex items-center justify-between gap-3" data-giftcard-applied>
+            <span><?= $escaper->escapeHtml(__('Gift card %1: %2', $card['masked'], $card['amount'])) ?></span>
+            <button type="button"
+                    hx-post="<?= $escaper->escapeUrl($url) ?>" hx-include="[name='form_key'], [name='payment_list_mode'], [name='payment_method']:checked"
+                    hx-vals='<?= $escaper->escapeHtmlAttr(json_encode(['remove' => $card['code']])) ?>'
+                    hx-target="#checkout-giftcard" hx-swap="outerHTML"
+                    class="link link-neutral text-xs"><?= $escaper->escapeHtml(__('Remove')) ?></button>
+        </div>
+    <?php endforeach; ?>
+    <details<?= $error ? ' open' : '' ?>>
+        <summary class="cursor-pointer underline underline-offset-2">
+            <?= $escaper->escapeHtml($cards ? __('Add another gift card') : __('Have a gift card?')) ?>
+        </summary>
+        <div class="flex gap-2 mt-2">
+            <label class="sr-only" for="checkout-giftcard-code"><?= $escaper->escapeHtml(__('Gift card code')) ?></label>
+            <input type="text" name="giftcard_code" id="checkout-giftcard-code"
+                   value="<?= $escaper->escapeHtmlAttr((string) $block->getData('typed')) ?>"
+                   autocomplete="off" autocapitalize="characters" enterkeyhint="go" spellcheck="false"
+                   data-enter-clicks placeholder="XXXX-XXXX-XXXX-XXXX"
+                   class="input input-bordered input-sm flex-1 min-w-0"
+                   <?= $error ? 'aria-invalid="true" aria-describedby="checkout-giftcard-error"' : '' ?> />
+            <button type="button"
+                    hx-post="<?= $escaper->escapeUrl($url) ?>"
+                    hx-include="#checkout-giftcard-code, [name='form_key'], [name='payment_list_mode'], [name='payment_method']:checked"
+                    hx-target="#checkout-giftcard" hx-swap="outerHTML"
+                    class="btn btn-outline btn-sm"><?= $escaper->escapeHtml(__('Apply')) ?></button>
+        </div>
+        <?php if ($error): ?>
+            <p id="checkout-giftcard-error" class="text-error text-xs mt-1" role="alert"><?= $escaper->escapeHtml($error) ?></p>
+        <?php endif; ?>
+    </details>
+</div>

@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!--
+    Copyright © 2026 Roman Pasichnyk
+    SPDX-License-Identifier: OSL-3.0 OR AFL-3.0
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <!-- A gift card: its code, what is left on it (base currency of its website), who it is for. -->
+    <table name="zero_giftcard" resource="default" engine="innodb" comment="Zero Gift Cards">
+        <column xsi:type="int" name="card_id" unsigned="true" nullable="false" identity="true" comment="Card ID"/>
+        <column xsi:type="varchar" name="code" length="32" nullable="false" comment="Code"/>
+        <column xsi:type="smallint" name="website_id" unsigned="true" nullable="false" comment="Website ID"/>
+        <column xsi:type="decimal" name="initial_amount" scale="4" precision="20" nullable="false" default="0" comment="Initial Amount (Base)"/>
+        <column xsi:type="decimal" name="balance" scale="4" precision="20" nullable="false" default="0" comment="Balance (Base)"/>
+        <column xsi:type="smallint" name="is_active" unsigned="true" nullable="false" default="1" comment="Active"/>
+        <column xsi:type="datetime" name="expires_at" nullable="true" comment="Expires At (UTC)"/>
+        <column xsi:type="varchar" name="order_increment_id" length="50" nullable="true" comment="Bought With Order"/>
+        <column xsi:type="int" name="order_item_id" unsigned="true" nullable="true" comment="Order Item"/>
+        <column xsi:type="varchar" name="sender_name" length="255" nullable="true" comment="From"/>
+        <column xsi:type="varchar" name="recipient_name" length="255" nullable="true" comment="To"/>
+        <column xsi:type="varchar" name="recipient_email" length="255" nullable="true" comment="Recipient Email"/>
+        <column xsi:type="text" name="message" nullable="true" comment="Message"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="true" comment="Store View (emails, links)"/>
+        <column xsi:type="datetime" name="sent_at" nullable="true" comment="Emailed At (UTC)"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Created At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="card_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="ZERO_GIFTCARD_CODE">
+            <column name="code"/>
+        </constraint>
+        <index referenceId="ZERO_GIFTCARD_ORDER_ITEM_ID" indexType="btree">
+            <column name="order_item_id"/>
+        </index>
+    </table>
+    <!-- Every change to a card's balance. -->
+    <table name="zero_giftcard_history" resource="default" engine="innodb" comment="Zero Gift Card History">
+        <column xsi:type="int" name="history_id" unsigned="true" nullable="false" identity="true" comment="History ID"/>
+        <column xsi:type="int" name="card_id" unsigned="true" nullable="false" comment="Card ID"/>
+        <column xsi:type="decimal" name="amount" scale="4" precision="20" nullable="false" comment="Change (Base)"/>
+        <column xsi:type="decimal" name="balance" scale="4" precision="20" nullable="false" comment="Balance After (Base)"/>
+        <column xsi:type="varchar" name="action" length="32" nullable="false" comment="Action"/>
+        <column xsi:type="varchar" name="order_increment_id" length="50" nullable="true" comment="Order"/>
+        <column xsi:type="varchar" name="comment" length="255" nullable="true" comment="Comment"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Created At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="history_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="ZERO_GIFTCARD_HISTORY_CARD_ID_ZERO_GIFTCARD_CARD_ID"
+                    table="zero_giftcard_history" column="card_id" referenceTable="zero_giftcard"
+                    referenceColumn="card_id" onDelete="CASCADE"/>
+        <index referenceId="ZERO_GIFTCARD_HISTORY_CARD_ID" indexType="btree">
+            <column name="card_id"/>
+        </index>
+    </table>
+    <table name="quote" resource="checkout">
+        <column xsi:type="text" name="zero_giftcard_codes" nullable="true" comment="Gift Card Codes Applied (JSON)"/>
+        <column xsi:type="text" name="zero_giftcard_used" nullable="true" comment="Gift Cards Used (JSON)"/>
+        <column xsi:type="decimal" name="zero_giftcard_amount" scale="4" precision="20" nullable="false" default="0" comment="Gift Cards"/>
+        <column xsi:type="decimal" name="base_zero_giftcard_amount" scale="4" precision="20" nullable="false" default="0" comment="Gift Cards (Base)"/>
+    </table>
+    <table name="sales_order" resource="sales">
+        <column xsi:type="text" name="zero_giftcard_used" nullable="true" comment="Gift Cards Used (JSON)"/>
+        <column xsi:type="decimal" name="zero_giftcard_amount" scale="4" precision="20" nullable="false" default="0" comment="Gift Cards"/>
+        <column xsi:type="decimal" name="base_zero_giftcard_amount" scale="4" precision="20" nullable="false" default="0" comment="Gift Cards (Base)"/>
+        <column xsi:type="decimal" name="base_zero_giftcard_invoiced" scale="4" precision="20" nullable="false" default="0" comment="Gift Cards Invoiced (Base)"/>
+        <column xsi:type="decimal" name="base_zero_giftcard_refunded" scale="4" precision="20" nullable="false" default="0" comment="Gift Cards Refunded (Base)"/>
+        <column xsi:type="decimal" name="base_zero_giftcard_returned" scale="4" precision="20" nullable="false" default="0" comment="Gift Cards Given Back on Cancel (Base)"/>
+    </table>
+    <table name="sales_invoice" resource="sales">
+        <column xsi:type="decimal" name="zero_giftcard_amount" scale="4" precision="20" nullable="false" default="0" comment="Gift Cards"/>
+        <column xsi:type="decimal" name="base_zero_giftcard_amount" scale="4" precision="20" nullable="false" default="0" comment="Gift Cards (Base)"/>
+    </table>
+    <table name="sales_creditmemo" resource="sales">
+        <column xsi:type="decimal" name="zero_giftcard_amount" scale="4" precision="20" nullable="false" default="0" comment="Gift Cards"/>
+        <column xsi:type="decimal" name="base_zero_giftcard_amount" scale="4" precision="20" nullable="false" default="0" comment="Gift Cards (Base)"/>
+    </table>
+</schema>

@@ -1,0 +1,145 @@
+<?php
+/**
+ * Copyright © 2026 Roman Pasichnyk
+ * SPDX-License-Identifier: OSL-3.0 OR AFL-3.0
+ *
+ * Marketing > Gift Cards: one card (?id=) with its history and actions, or
+ * every card with a search and a form to make one.
+ *
+ * @var \Magento\Backend\Block\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+/** @var \Zero\GiftCard\ViewModel\Admin $admin */
+$admin = $block->getData('view_model');
+$card = $admin->card();
+$save = $admin->url('zero_giftcard/card/save');
+$formKey = $block->getFormKey();
+?>
+<?php if ($card): ?>
+    <p><a href="<?= $escaper->escapeUrl($admin->url('zero_giftcard/card/index')) ?>">&larr; <?= $escaper->escapeHtml(__('All gift cards')) ?></a></p>
+    <h2 class="admin__legend zero-giftcard-code" style="font-family: monospace; letter-spacing: 1px;"><?= $escaper->escapeHtml($card['code']) ?></h2>
+    <table class="admin__table-secondary" style="max-width: 640px; margin-bottom: 20px;">
+        <tr><th><?= $escaper->escapeHtml(__('Balance')) ?></th><td data-giftcard-balance><?= $escaper->escapeHtml($admin->money($card, (float) $card['balance'])) ?> / <?= $escaper->escapeHtml($admin->money($card, (float) $card['initial_amount'])) ?></td></tr>
+        <tr><th><?= $escaper->escapeHtml(__('Status')) ?></th><td><?= $escaper->escapeHtml((int) $card['is_active'] ? __('Active') : __('Off')) ?></td></tr>
+        <tr><th><?= $escaper->escapeHtml(__('Expires (UTC)')) ?></th><td><?= $escaper->escapeHtml((string) ($card['expires_at'] ?: __('Never'))) ?></td></tr>
+        <tr><th><?= $escaper->escapeHtml(__('To')) ?></th><td><?= $escaper->escapeHtml(trim($card['recipient_name'] . ' ' . ($card['recipient_email'] ? '(' . $card['recipient_email'] . ')' : ''))) ?></td></tr>
+        <tr><th><?= $escaper->escapeHtml(__('From')) ?></th><td><?= $escaper->escapeHtml((string) $card['sender_name']) ?></td></tr>
+        <tr><th><?= $escaper->escapeHtml(__('Message')) ?></th><td><?= $escaper->escapeHtml((string) $card['message']) ?></td></tr>
+        <tr><th><?= $escaper->escapeHtml(__('Bought With Order')) ?></th><td><?= $escaper->escapeHtml((string) $card['order_increment_id']) ?></td></tr>
+        <tr><th><?= $escaper->escapeHtml(__('Emailed (UTC)')) ?></th><td><?= $escaper->escapeHtml((string) ($card['sent_at'] ?: __('Not yet'))) ?></td></tr>
+    </table>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+        <form method="post" action="<?= $escaper->escapeUrl($save) ?>">
+            <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($formKey) ?>">
+            <input type="hidden" name="id" value="<?= (int) $card['card_id'] ?>">
+            <input type="hidden" name="do" value="toggle">
+            <button type="submit" class="action-secondary"><?= $escaper->escapeHtml((int) $card['is_active'] ? __('Turn Off') : __('Turn On')) ?></button>
+        </form>
+        <?php if ($card['recipient_email']): ?>
+            <form method="post" action="<?= $escaper->escapeUrl($save) ?>">
+                <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($formKey) ?>">
+                <input type="hidden" name="id" value="<?= (int) $card['card_id'] ?>">
+                <input type="hidden" name="do" value="send">
+                <button type="submit" class="action-secondary"><?= $escaper->escapeHtml(__('Email It Again')) ?></button>
+            </form>
+        <?php endif; ?>
+        <form method="post" action="<?= $escaper->escapeUrl($save) ?>" style="display: flex; gap: 8px; align-items: center;">
+            <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($formKey) ?>">
+            <input type="hidden" name="id" value="<?= (int) $card['card_id'] ?>">
+            <input type="hidden" name="do" value="adjust">
+            <input class="admin__control-text" type="number" step="0.01" name="amount" required style="width: 110px;"
+                   aria-label="<?= $escaper->escapeHtmlAttr(__('Change balance by')) ?>" placeholder="<?= $escaper->escapeHtmlAttr(__('+/- amount')) ?>">
+            <input class="admin__control-text" type="text" name="comment" maxlength="255" style="width: 220px;"
+                   aria-label="<?= $escaper->escapeHtmlAttr(__('Note')) ?>" placeholder="<?= $escaper->escapeHtmlAttr(__('Note')) ?>">
+            <button type="submit" class="action-secondary"><?= $escaper->escapeHtml(__('Change Balance')) ?></button>
+        </form>
+    </div>
+    <table class="data-grid zero-giftcard-history">
+        <thead>
+            <tr>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('Date (UTC)')) ?></th>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('What')) ?></th>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('Change')) ?></th>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('Balance After')) ?></th>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('Order')) ?></th>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('Note')) ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($admin->history((int) $card['card_id']) as $row): ?>
+                <tr>
+                    <td><?= $escaper->escapeHtml($row['created_at']) ?></td>
+                    <td><?= $escaper->escapeHtml(ucfirst((string) $row['action'])) ?></td>
+                    <td><?= $escaper->escapeHtml($admin->money($card, (float) $row['amount'])) ?></td>
+                    <td><?= $escaper->escapeHtml($admin->money($card, (float) $row['balance'])) ?></td>
+                    <td><?= $escaper->escapeHtml((string) $row['order_increment_id']) ?></td>
+                    <td><?= $escaper->escapeHtml((string) $row['comment']) ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+<?php else: ?>
+    <section class="admin__fieldset-wrapper" style="margin-bottom: 30px;">
+        <h2 class="admin__legend"><?= $escaper->escapeHtml(__('Make a Gift Card')) ?></h2>
+        <form method="post" action="<?= $escaper->escapeUrl($save) ?>" class="zero-giftcard-make"
+              style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+            <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($formKey) ?>">
+            <label><?= $escaper->escapeHtml(__('Amount (base currency)')) ?><br>
+                <input class="admin__control-text" type="number" step="0.01" min="0.01" name="amount" id="giftcard-amount" required style="width: 130px;">
+            </label>
+            <label><?= $escaper->escapeHtml(__('Store View')) ?><br>
+                <select class="admin__control-select" name="store_id">
+                    <?php foreach ($admin->storeViews() as $id => $name): ?>
+                        <option value="<?= (int) $id ?>"><?= $escaper->escapeHtml($name) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+            <label><?= $escaper->escapeHtml(__('To (name)')) ?><br>
+                <input class="admin__control-text" type="text" name="recipient_name" maxlength="100">
+            </label>
+            <label><?= $escaper->escapeHtml(__('Recipient Email')) ?><br>
+                <input class="admin__control-text" type="email" name="recipient_email" id="giftcard-email">
+            </label>
+            <label><?= $escaper->escapeHtml(__('From (name)')) ?><br>
+                <input class="admin__control-text" type="text" name="sender_name" maxlength="100">
+            </label>
+            <label><?= $escaper->escapeHtml(__('Message')) ?><br>
+                <input class="admin__control-text" type="text" name="message" maxlength="500" style="width: 300px;">
+            </label>
+            <label style="align-self: center;"><input type="checkbox" name="send" value="1" checked> <?= $escaper->escapeHtml(__('Email it')) ?></label>
+            <button type="submit" class="action-primary"><?= $escaper->escapeHtml(__('Make Gift Card')) ?></button>
+        </form>
+    </section>
+    <form method="get" action="<?= $escaper->escapeUrl($admin->url('zero_giftcard/card/index')) ?>" style="margin-bottom: 15px; display: flex; gap: 8px;">
+        <input class="admin__control-text" type="search" name="q" value="<?= $escaper->escapeHtmlAttr($admin->search()) ?>"
+               placeholder="<?= $escaper->escapeHtmlAttr(__('Code, recipient or order')) ?>" aria-label="<?= $escaper->escapeHtmlAttr(__('Search gift cards')) ?>" style="width: 300px;">
+        <button type="submit" class="action-secondary"><?= $escaper->escapeHtml(__('Search')) ?></button>
+    </form>
+    <table class="data-grid zero-giftcard-list">
+        <thead>
+            <tr>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('Code')) ?></th>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('Balance')) ?></th>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('Status')) ?></th>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('To')) ?></th>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('Order')) ?></th>
+                <th class="data-grid-th"><?= $escaper->escapeHtml(__('Made (UTC)')) ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($admin->all() as $row): ?>
+                <tr>
+                    <td style="font-family: monospace;"><a href="<?= $escaper->escapeUrl($admin->url('zero_giftcard/card/index', ['id' => $row['card_id']])) ?>"><?= $escaper->escapeHtml($row['code']) ?></a></td>
+                    <td><?= $escaper->escapeHtml($admin->money($row, (float) $row['balance'])) ?> / <?= $escaper->escapeHtml($admin->money($row, (float) $row['initial_amount'])) ?></td>
+                    <td><?= $escaper->escapeHtml((int) $row['is_active'] ? __('Active') : __('Off')) ?></td>
+                    <td><?= $escaper->escapeHtml(trim($row['recipient_name'] . ' ' . $row['recipient_email'])) ?></td>
+                    <td><?= $escaper->escapeHtml((string) $row['order_increment_id']) ?></td>
+                    <td><?= $escaper->escapeHtml($row['created_at']) ?></td>
+                </tr>
+            <?php endforeach; ?>
+            <?php if (!$admin->all()): ?>
+                <tr><td colspan="6"><?= $escaper->escapeHtml(__('No gift cards yet.')) ?></td></tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+<?php endif; ?>

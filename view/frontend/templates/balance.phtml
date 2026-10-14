@@ -1,0 +1,39 @@
+<?php
+/**
+ * Copyright © 2026 Roman Pasichnyk
+ * SPDX-License-Identifier: OSL-3.0 OR AFL-3.0
+ *
+ * Gift card balance: a code in, what is left on it out (a plain GET form).
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Zero\GiftCard\ViewModel\Balance $viewModel
+ */
+$viewModel = $block->getData('viewModel');
+$result = $viewModel->result();
+?>
+<div class="zero-giftcard-balance max-w-md flex flex-col gap-6">
+    <form method="get" action="<?= $escaper->escapeUrl($block->getUrl('giftcard/balance')) ?>" class="flex flex-col gap-2">
+        <label for="giftcard-balance-code" class="text-sm font-medium"><?= $escaper->escapeHtml(__('Gift card code')) ?></label>
+        <div class="flex gap-2">
+            <input type="text" id="giftcard-balance-code" name="code" required maxlength="40" spellcheck="false"
+                   autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX-XXXX"
+                   value="<?= $escaper->escapeHtmlAttr($viewModel->code()) ?>" class="input input-bordered flex-1 min-w-0">
+            <button type="submit" class="btn btn-neutral"><?= $escaper->escapeHtml(__('Check')) ?></button>
+        </div>
+    </form>
+    <?php if ($result !== null): ?>
+        <?php if ($result['balance'] === ''): ?>
+            <p class="alert alert-error alert-soft text-sm" role="alert" data-giftcard-problem><?= $escaper->escapeHtml((string) $result['problem']) ?></p>
+        <?php else: ?>
+            <section class="flex flex-col gap-1" aria-live="polite">
+                <p class="text-sm uppercase tracking-wide text-base-content/70"><?= $escaper->escapeHtml(__('Left on the card')) ?></p>
+                <p class="text-4xl font-semibold tabular-nums" data-giftcard-balance><?= $escaper->escapeHtml($result['balance']) ?></p>
+                <p class="text-base-content/70"><?= $escaper->escapeHtml(__('Of %1', $result['initial'])) ?><?= $result['expires'] ? $escaper->escapeHtml(' · ' . __('Use by %1', $result['expires'])) : '' ?></p>
+                <?php if ($result['problem']): ?>
+                    <p class="alert alert-warning alert-soft text-sm mt-2"><?= $escaper->escapeHtml((string) $result['problem']) ?></p>
+                <?php endif; ?>
+            </section>
+        <?php endif; ?>
+    <?php endif; ?>
+</div>
