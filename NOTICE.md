@@ -1,4 +1,4 @@
-# fixstacks/module-zero-gift-card — licensing
+# zerofront/module-zero-gift-card — licensing
 
 Copyright © 2026 Roman Pasichnyk.
 
